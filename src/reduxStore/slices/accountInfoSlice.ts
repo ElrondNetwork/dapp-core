@@ -76,7 +76,7 @@ export const accountInfoSlice = createSlice({
     ) => {
       const address = action.payload;
       state.address = address;
-      state.publicKey = address ? new Address(address).hex() : '';
+      state.publicKey = address ? Address.newFromBech32(address).hex() : '';
     },
     setAccount: (
       state: AccountInfoSliceType,
@@ -173,7 +173,7 @@ export const accountInfoSlice = createSlice({
       ) => {
         const { address } = action.payload;
         state.address = address;
-        state.publicKey = new Address(address).hex();
+        state.publicKey = Address.newFromBech32(address).hex();
       }
     );
     builder.addCase(REHYDRATE, (state, action: any) => {

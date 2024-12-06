@@ -52,8 +52,8 @@ export function calculateFeeLimit({
   const transaction = new Transaction({
     nonce: 0,
     value: TokenPayment.egldFromAmount('0'),
-    receiver: new Address(placeholderData.to),
-    sender: new Address(placeholderData.to),
+    receiver: Address.newFromBech32(placeholderData.to),
+    sender: Address.newFromBech32(placeholderData.to),
     gasPrice: parseInt(validGasPrice),
     gasLimit: usedGasLimit,
     data: new TransactionPayload(data.trim()),

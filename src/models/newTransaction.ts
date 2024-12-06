@@ -22,11 +22,11 @@ export function newTransaction(rawTransaction: RawTransactionType) {
     value: rawTx.value.valueOf(),
     data: getDataPayloadForTransaction(rawTx.data),
     nonce: rawTx.nonce.valueOf(),
-    receiver: new Address(rawTx.receiver),
+    receiver: Address.newFromBech32(rawTx.receiver),
     ...(rawTx.receiverUsername
       ? { receiverUsername: rawTx.receiverUsername }
       : {}),
-    sender: new Address(rawTx.sender),
+    sender: Address.newFromBech32(rawTx.sender),
     ...(rawTx.senderUsername ? { senderUsername: rawTx.senderUsername } : {}),
     gasLimit: rawTx.gasLimit.valueOf() ?? GAS_LIMIT,
     gasPrice: rawTx.gasPrice.valueOf() ?? GAS_PRICE,
@@ -35,7 +35,9 @@ export function newTransaction(rawTransaction: RawTransactionType) {
     ...(rawTx.options
       ? { options: new TransactionOptions(rawTx.options) }
       : {}),
-    ...(rawTx.guardian ? { guardian: new Address(rawTx.guardian) } : {})
+    ...(rawTx.guardian
+      ? { guardian: Address.newFromBech32(rawTx.guardian) }
+      : {})
   });
 
   if (rawTx.guardianSignature) {

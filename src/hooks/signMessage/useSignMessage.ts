@@ -144,7 +144,7 @@ export const useSignMessage = (options?: { hasConsentPopup?: boolean }) => {
     const callbackUrl = encodeURIComponent(String(callbackRoute));
 
     const signableMessage = new Message({
-      address: new Address(address),
+      address: Address.newFromBech32(address),
       data: Buffer.from(message)
     });
 

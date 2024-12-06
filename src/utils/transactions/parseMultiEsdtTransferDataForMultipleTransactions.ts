@@ -77,7 +77,7 @@ export function parseMultiEsdtTransferDataForMultipleTransactions({
           txInfo: {
             tokenId,
             amount,
-            receiver: transaction.getReceiver().bech32()
+            receiver: transaction.receiver
           }
         });
       }

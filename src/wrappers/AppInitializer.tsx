@@ -113,7 +113,7 @@ export const useAppInitializer = ({
 
   useEffect(() => {
     if (address) {
-      const pubKey = new Address(address).hex();
+      const pubKey = Address.newFromBech32(address).hex();
       if (pubKey !== publicKey) {
         logout(logoutRoute);
       }

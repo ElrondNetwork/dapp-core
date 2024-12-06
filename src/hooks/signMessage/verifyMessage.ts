@@ -13,7 +13,7 @@ export const verifyMessage = (signedMessage: string) => {
     const messageComputer = new MessageComputer();
 
     const msg = new Message({
-      address: new Address(address),
+      address: Address.newFromBech32(address),
       data: decodedMessage
     });
 

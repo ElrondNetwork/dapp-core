@@ -126,7 +126,7 @@ export const useLoginService = (config?: OnProviderLoginType['nativeAuth']) => {
     }
 
     const messageToSign = new Message({
-      address: new Address(address),
+      address: Address.newFromBech32(address),
       data: Buffer.from(`${address}${loginToken}`)
     });
 

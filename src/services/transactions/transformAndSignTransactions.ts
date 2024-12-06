@@ -67,7 +67,7 @@ export async function transformAndSignTransactions({
     let validatedReceiver = receiver;
 
     try {
-      const addr = new Address(receiver);
+      const addr = Address.newFromBech32(receiver);
       validatedReceiver = addr.hex();
     } catch (err) {
       throw ErrorCodesEnum.invalidReceiver;
@@ -87,7 +87,7 @@ export async function transformAndSignTransactions({
       gasPrice,
       gasLimit: Number(gasLimit),
       nonce: Number(computedNonce.valueOf().toString()),
-      sender: new Address(address).hex(),
+      sender: Address.newFromBech32(address).hex(),
       chainID: transactionsChainId,
       version,
       options,

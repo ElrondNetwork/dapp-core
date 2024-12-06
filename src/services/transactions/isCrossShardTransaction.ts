@@ -13,10 +13,10 @@ export function isCrossShardTransaction({
   senderAddress
 }: IsCrossShardTransactionPropsType) {
   try {
-    const receiver = new Address(receiverAddress);
+    const receiver = Address.newFromBech32(receiverAddress);
     const receiverShard = getShardOfAddress(receiver.pubkey());
     if (senderShard == null && senderAddress != null) {
-      const sender = new Address(senderAddress);
+      const sender = Address.newFromBech32(senderAddress);
       return getShardOfAddress(sender) === receiverShard;
     }
     return receiverShard === senderShard;

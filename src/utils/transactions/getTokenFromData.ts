@@ -64,14 +64,14 @@ export function getTokenFromData(data?: string): {
         decodeData(data);
       if (
         [collection, nonce, quantity, receiver].every((el) => Boolean(el)) &&
-        addressIsValid(new Address(receiver).bech32())
+        addressIsValid(Address.newFromHex(receiver).toBech32())
       ) {
         return {
           tokenId: `${collection}-${nonce}`,
           amount: new BigNumber(quantity, 16).toString(10),
           collection,
           nonce,
-          receiver: new Address(receiver).bech32()
+          receiver: Address.newFromHex(receiver).toBech32()
         };
       }
     } catch (err) {}

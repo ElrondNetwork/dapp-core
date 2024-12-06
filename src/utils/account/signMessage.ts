@@ -25,7 +25,7 @@ export const signMessage = async ({
   const callbackUrl = addOriginToLocationPath(callbackRoute);
 
   const signableMessage = new Message({
-    address: new Address(address),
+    address: Address.newFromBech32(address),
     data: Buffer.from(message)
   });
 
