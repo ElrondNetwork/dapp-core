@@ -1,5 +1,9 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { AVERAGE_TX_DURATION_MS, CROSS_SHARD_ROUNDS } from 'constants/index';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  AVERAGE_TX_DURATION_MS,
+  CROSS_SHARD_ROUNDS,
+  TRANSACTION_TOAST_DEFAULT_TIMEOUT
+} from 'constants/index';
 import { useStyles } from 'hocs/useStyles';
 import { useGetAccount, useGetTransactionDisplayInfo } from 'hooks';
 import { useSelector } from 'reduxStore/DappProviderContext';
@@ -38,15 +42,22 @@ export const useTransactionToast = ({
   const transactionDisplayInfo = useGetTransactionDisplayInfo(toastId);
   const accountShard = useSelector(shardSelector);
   const { address } = useGetAccount();
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const lifetimeAfterSuccessTimeoutRef = useRef<NodeJS.Timeout>();
+  const lifetimeRef = useRef<NodeJS.Timeout>();
   const areSameShardTransactions = useMemo(
     () => getAreTransactionsOnSameShard(transactions, accountShard),
     [transactions, accountShard]
   );
 
+  const [isToastTimedOut, setIsToastTimedOut] = useState<boolean>(false);
+
   const shardAdjustedDuration = areSameShardTransactions
     ? AVERAGE_TX_DURATION_MS
     : CROSS_SHARD_ROUNDS * AVERAGE_TX_DURATION_MS;
+
+  const toastLifetime = areSameShardTransactions
+    ? TRANSACTION_TOAST_DEFAULT_TIMEOUT
+    : CROSS_SHARD_ROUNDS * TRANSACTION_TOAST_DEFAULT_TIMEOUT;
 
   const transactionDuration =
     transactionDisplayInfo?.transactionDuration || shardAdjustedDuration;
@@ -68,7 +79,7 @@ export const useTransactionToast = ({
   const isPending = getIsTransactionPending(status);
   const isFailed = getIsTransactionFailed(status);
   const isSuccess = getIsTransactionSuccessful(status);
-  const isTimedOut = getIsTransactionTimedOut(status);
+  const isTimedOut = getIsTransactionTimedOut(status) || isToastTimedOut;
   const isCompleted = isFailed || isSuccess || isTimedOut;
 
   const toastDataState = getToastDataStateByStatus({
@@ -85,24 +96,48 @@ export const useTransactionToast = ({
   };
 
   useEffect(() => {
-    if (!isCompleted || !lifetimeAfterSuccess || timeoutRef.current) {
+    if (
+      !isCompleted ||
+      !lifetimeAfterSuccess ||
+      lifetimeAfterSuccessTimeoutRef.current
+    ) {
       return;
     }
 
-    timeoutRef.current = setTimeout(() => {
+    lifetimeAfterSuccessTimeoutRef.current = setTimeout(() => {
       handleDeleteToast();
     }, lifetimeAfterSuccess);
 
     return () => {
-      if (timeoutRef.current) {
+      if (lifetimeAfterSuccessTimeoutRef.current) {
         // Clear timer on unmount and also delete the toast
         // The toast may have been removed before the timer finished by the re-rendering
         // of the toasts list during another toast removal from the store
         handleDeleteToast();
-        clearTimeout(timeoutRef.current);
+        clearTimeout(lifetimeAfterSuccessTimeoutRef.current);
       }
     };
   }, [lifetimeAfterSuccess, isCompleted]);
+
+  // Prevent the toast from infinite pending in case the API fails
+  // Mark the toast/transaction as timed out after specific seconds
+  useEffect(() => {
+    if (!isPending || lifetimeRef.current) {
+      return;
+    }
+
+    lifetimeRef.current = setTimeout(() => {
+      if (isPending) {
+        setIsToastTimedOut(true);
+      }
+    }, toastLifetime);
+
+    return () => {
+      if (lifetimeRef.current) {
+        clearTimeout(lifetimeRef.current);
+      }
+    };
+  }, [isPending, isCompleted]);
 
   return {
     isCrossShard: !areSameShardTransactions,

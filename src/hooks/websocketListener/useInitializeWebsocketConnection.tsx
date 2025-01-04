@@ -18,6 +18,7 @@ const RETRY_INTERVAL = 500;
 const MESSAGE_DELAY = 1000;
 const BATCH_UPDATED_EVENT = 'batchUpdated';
 const CONNECT = 'connect';
+const CONNECT_ERROR = 'connect_error';
 const DISCONNECT = 'disconnect';
 
 export function useInitializeWebsocketConnection() {
@@ -48,6 +49,9 @@ export function useInitializeWebsocketConnection() {
   };
 
   const unsubscribeWS = () => {
+    websocketConnection.current?.off(CONNECT_ERROR);
+    websocketConnection.current?.off(CONNECT);
+    websocketConnection.current?.off(BATCH_UPDATED_EVENT);
     websocketConnection.current?.close();
     websocketConnection.current = null;
     websocketConnection.status = WebsocketConnectionStatusEnum.NOT_INITIALIZED;
@@ -55,12 +59,30 @@ export function useInitializeWebsocketConnection() {
     if (messageTimeout.current) {
       clearTimeout(messageTimeout.current);
     }
+
+    if (batchTimeout.current) {
+      clearTimeout(batchTimeout.current);
+    }
+  };
+
+  const retryWebsocketConnect = () => {
+    setTimeout(() => {
+      if (address) {
+        // Make sure we are still logged in when the timeout is finished
+        console.log('Websocket reconnecting...');
+        websocketConnection.status = WebsocketConnectionStatusEnum.PENDING;
+        websocketConnection.current?.connect();
+      }
+    }, RETRY_INTERVAL);
   };
 
   const initializeWebsocketConnection = useCallback(
     retryMultipleTimes(
       async () => {
         if (!address) {
+          websocketConnection.status =
+            WebsocketConnectionStatusEnum.NOT_INITIALIZED;
+
           return;
         }
 
@@ -73,11 +95,15 @@ export function useInitializeWebsocketConnection() {
 
         if (websocketUrl == null) {
           console.warn('Can not get websocket url');
+          websocketConnection.status =
+            WebsocketConnectionStatusEnum.NOT_INITIALIZED;
+
           return;
         }
 
         websocketConnection.current = io(websocketUrl, {
           forceNew: true,
+          reconnection: true,
           reconnectionAttempts: RECONNECTION_ATTEMPTS,
           timeout: TIMEOUT,
           query: {
@@ -85,14 +111,24 @@ export function useInitializeWebsocketConnection() {
           }
         });
 
-        websocketConnection.status = WebsocketConnectionStatusEnum.COMPLETED;
-
         websocketConnection.current.onAny(handleMessageReceived);
 
         websocketConnection.current.on(BATCH_UPDATED_EVENT, handleBatchUpdate);
 
         websocketConnection.current.on(CONNECT, () => {
           console.log('Websocket connected.');
+          websocketConnection.status = WebsocketConnectionStatusEnum.COMPLETED;
+        });
+
+        websocketConnection.current.on(CONNECT_ERROR, (error) => {
+          console.warn('Websocket connect error: ', error.message);
+
+          if (address) {
+            retryWebsocketConnect();
+          } else {
+            websocketConnection.status =
+              WebsocketConnectionStatusEnum.NOT_INITIALIZED;
+          }
         });
 
         websocketConnection.current.on(DISCONNECT, () => {
@@ -100,13 +136,10 @@ export function useInitializeWebsocketConnection() {
             // Make sure we are still logged in before retrying to connect to the websocket
             console.warn('Websocket disconnected. Trying to reconnect...');
 
-            setTimeout(() => {
-              if (address) {
-                // Make sure we are still logged in when the timeout is finished
-                console.log('Websocket reconnecting...');
-                websocketConnection.current?.connect();
-              }
-            }, RETRY_INTERVAL);
+            retryWebsocketConnect();
+          } else {
+            websocketConnection.status =
+              WebsocketConnectionStatusEnum.NOT_INITIALIZED;
           }
         });
       },

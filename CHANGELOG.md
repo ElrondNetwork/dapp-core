@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- [Added ability to close transaction toasts on timeout](https://github.com/multiversx/mx-sdk-dapp/pull/1352)
+
 ## [[v3.1.5](https://github.com/multiversx/mx-sdk-dapp/pull/1351)] - 2024-12-17
 
 - [Fixed cross window page reload on internal logout](https://github.com/multiversx/mx-sdk-dapp/pull/1350)
