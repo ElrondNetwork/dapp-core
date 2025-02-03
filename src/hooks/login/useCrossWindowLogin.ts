@@ -59,6 +59,7 @@ export const useCrossWindowLogin = ({
     setIsLoading(true);
     const isSuccessfullyInitialized: boolean =
       await CrossWindowProvider.getInstance().init();
+
     const provider: CrossWindowProvider =
       CrossWindowProvider.getInstance().setWalletUrl(
         walletAddress ?? network.walletAddress
@@ -105,13 +106,15 @@ export const useCrossWindowLogin = ({
       const { signature, address, multisig, impersonate } =
         await provider.login(providerLoginData);
 
-      setAccountProvider(provider);
-
       if (!address) {
         setIsLoading(false);
+        // Reset the `CrossWindowProvider` if the login failed
+        await CrossWindowProvider.getInstance().dispose();
         console.warn('Login cancelled.');
         return;
       }
+
+      setAccountProvider(provider);
 
       const account = await processModifiedAccount({
         loginToken: token,

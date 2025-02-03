@@ -9,6 +9,7 @@ export const clearInitiatedLogins = (props?: {
     if (method === props?.skipLoginMethod) {
       return;
     }
+
     switch (method) {
       case LoginMethodsEnum.crossWindow: {
         const crossWindowProvider = CrossWindowProvider.getInstance();
@@ -17,6 +18,7 @@ export const clearInitiatedLogins = (props?: {
         }
         break;
       }
+
       case LoginMethodsEnum.iframe: {
         const iframeProvider = IframeProvider.getInstance();
         if (iframeProvider.isInitialized()) {

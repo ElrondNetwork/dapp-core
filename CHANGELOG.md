@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- [Fixed walletconnect init fails after cross window login attempt](https://github.com/multiversx/mx-sdk-dapp/pull/1370)
+
 ## [[v3.2.1](https://github.com/multiversx/mx-sdk-dapp/pull/1368)] - 2025-01-31
 
 - [Added optional receiver trimming option](https://github.com/multiversx/mx-sdk-dapp/pull/1367)

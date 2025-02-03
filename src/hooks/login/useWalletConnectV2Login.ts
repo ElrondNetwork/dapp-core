@@ -303,7 +303,11 @@ export const useWalletConnectV2Login = ({
 
     const isLoggedIn = getIsLoggedIn();
     const cannotLogin = mounted.current === false && !isLoggedIn;
-    const isInitialized = providerRef.current?.isInitialized?.();
+    const isWalletConnectProvider =
+      getProviderType(providerRef.current) === LoginMethodsEnum.walletconnectv2;
+
+    const isInitialized =
+      providerRef.current?.isInitialized?.() && isWalletConnectProvider;
 
     if (isInitialisingRef.current || cannotLogin || isInitialized) {
       return;
